@@ -44,8 +44,8 @@ add_library(MauiKit${MAUI_MAJOR_VERSION}::Accounts ALIAS MauiKitAccounts${MAUI_M
 
 generate_export_header(MauiKitAccounts${MAUI_MAJOR_VERSION} BASE_NAME Accounts)
 set_target_properties(MauiKitAccounts${MAUI_MAJOR_VERSION} PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
+    VERSION ${MAUIKIT_SO_VERSION}
+    SOVERSION ${MAUIKIT_SO_VERSION}
     EXPORT_NAME "Accounts")
 
 target_include_directories(MauiKitAccounts${MAUI_MAJOR_VERSION}

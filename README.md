@@ -1,27 +1,17 @@
-<!--
-SPDX-FileCopyrightText: 2020 Carl Schwan <carl@carlschwan.eu>
+# MauiKit Accounts
 
-SPDX-License-Identifier: BSD-2-Clause
--->
+![](https://mauikit.org/wp-content/uploads/2018/12/maui_project_logo.png)
 
-# KQuickImageEditor
+_Accounts integration components for MauiKit applications._
 
-## Introduction
+# Issues
 
-KQuickImageEditor is a set of QtQuick components providing basic image editing
-capabilities.
+If you find problems with the contents of this repository, please create an issue and use the **🐞 Bug report** template.
 
-![Video in action](koko-animation.mp4)
+## Submitting a bug report
 
-## Examples
+Before submitting a bug, you should look at the [existing bug reports](https://github.com/Nitrux/mauikit-accounts-src/issues) to verify that no one has reported the bug already.
 
-An example can be found in [the examples folder](examples).
+©2026 Nitrux Latinoamericana S.C.
 
-## License
-
-KQuickImageEditor is a licensed under the Lesser General Public License version
-2.1 or later. A copy of the license can be found in
-[this repo](LICENSES/LGPL-2.1-or-later.txt).
-
-The examples are licensed under the 2-Clause BSD, that can be found in
-[here](LICENSES/BSD-2-Clause.txt).
+---
