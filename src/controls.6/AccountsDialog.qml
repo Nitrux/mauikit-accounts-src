@@ -127,7 +127,6 @@ Maui.PopupPage
         
             holder.visible: _listView.count == 0
             anchors.fill: parent
-            holder.isMask: true
             holder.emoji: "qrc:/assets/dialog-information.svg"
             holder.title: i18nd("mauikitaccounts","No accounts yet!")
             holder.body: i18nd("mauikitaccounts","Start adding new accounts to sync your files, music, contacts, images, notes, etc...")
