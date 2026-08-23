@@ -32,7 +32,10 @@ class AccountsDB;
 class ACCOUNTS_EXPORT MauiAccounts : public MauiList
 {
     Q_OBJECT
+    /** The selected account row, or -1 when no account is selected. */
     Q_PROPERTY(int currentAccountIndex READ getCurrentAccountIndex WRITE setCurrentAccountIndex NOTIFY currentAccountIndexChanged)
+
+    /** The data for currentAccountIndex, or an empty map when none is selected. */
     Q_PROPERTY(QVariantMap currentAccount READ getCurrentAccount NOTIFY currentAccountChanged)
 
 public:
@@ -52,71 +55,43 @@ public:
 
     const FMH::MODEL_LIST &items() const final override;
 
-    /**
-     * @brief setCurrentAccountIndex
-     * @param index
-     */
+    /** Selects the account at  index; out-of-range indexes are ignored. */
     void setCurrentAccountIndex(const int &index);
 
-    /**
-     * @brief getCurrentAccountIndex
-     * @return
-     */
+    /** Returns the selected account row, or -1 when none is selected. */
     int getCurrentAccountIndex() const;
 
-    /**
-     * @brief getCurrentAccount
-     * @return
-     */
+    /** Returns the selected account as a key-value map. */
     QVariantMap getCurrentAccount() const;
 
-    /**
-     * @brief getCount
-     * @return
-     */
+    /** Returns the number of registered cloud accounts. */
     uint getCount() const;
 
-    /**
-     * @brief get
-     * @param index
-     * @return
-     */
+    /** Returns the account at  index, or an empty map if it is invalid. */
     QVariantMap get(const int &index) const;
 
 public Q_SLOTS:
-    /**
-     * @brief getCloudAccountsList
-     * @return
-     */
+    /** Returns all cloud accounts as QVariantMap entries suitable for QML. */
     QVariantList getCloudAccountsList();
 
-    /**
-     * @brief getCloudAccounts
-     * @return
-     */
+    /** Returns all cloud accounts in the native FMH model representation. */
     FMH::MODEL_LIST getCloudAccounts();
 
-    /**
-     * @brief registerAccount
-     * @param account
-     */
+    /** Registers  account and refreshes the exposed account list on success. */
     void registerAccount(const QVariantMap &account);
 
-    /**
-     * @brief removeAccount
-     * @param index
-     */
+    /** Removes the account at  index and refreshes the account list. */
     void removeAccount(const int &index);
 
     /**
-     * @brief removeAccountAndFiles
-     * @param index
+     * Removes the account at  index.
+     *
+     *  Cached-file removal is not currently implemented, so this behaves
+     * like removeAccount().
      */
     void removeAccountAndFiles(const int &index);
 
-    /**
-     * @brief refresh
-     */
+    /** Reloads the account list from persistent storage. */
     void refresh();
 
 private:
@@ -138,27 +113,15 @@ private:
     QVariantList get(const QString &queryTxt);
 
 Q_SIGNALS:
-    /**
-     * @brief accountAdded
-     * @param account
-     */
+    /** Emitted after  account is added to persistent storage. */
     void accountAdded(QVariantMap account);
 
-    /**
-     * @brief accountRemoved
-     * @param account
-     */
+    /** Emitted after  account is removed from persistent storage. */
     void accountRemoved(QVariantMap account);
 
-    /**
-     * @brief currentAccountChanged
-     * @param account
-     */
+    /** Emitted when the selected  account changes. */
     void currentAccountChanged(QVariantMap account);
 
-    /**
-     * @brief currentAccountIndexChanged
-     * @param index
-     */
+    /** Emitted when the selected account  index changes. */
     void currentAccountIndexChanged(int index);
 };
