@@ -1,5 +1,5 @@
 #include "moduleinfo.h"
-#include "../accounts_version.h"
+#include "accounts_version.h"
 
 QString MauiKitAccounts::versionString()
 {
