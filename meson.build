@@ -46,7 +46,7 @@ install_data(configure_file(
 install_subdir('src/controls.6', install_dir: qml_dir, strip_directory: true)
 install_headers(files('src/code/mauiaccounts.h', 'src/code/moduleinfo.h') + [export_header], subdir: 'MauiKit4/Accounts')
 pkg = import('pkgconfig')
-pkg.generate(lib, name: 'MauiKit Accounts 4', filebase: 'MauiKitAccounts4', version: meson.project_version(), description: 'MauiKit accounts library', requires: 'MauiKit4 Qt6Core Qt6DBus Qt6Network Qt6Qml Qt6Quick Qt6Sql KF6CoreAddons KF6I18n')
+pkg.generate(lib, name: 'MauiKit Accounts 4', filebase: 'MauiKitAccounts4', version: meson.project_version(), description: 'MauiKit accounts library', requires: 'MauiKit4 Qt6Core Qt6DBus Qt6Network Qt6Qml Qt6Quick Qt6Sql')
 
 cmake_targets = configure_file(
     input: 'meson-content.in',
