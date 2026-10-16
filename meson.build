@@ -41,12 +41,12 @@ qml_dir = get_option('libdir') / 'qt6/qml/org/mauikit/accounts'
 install_data(configure_file(
     input: 'meson-content.in',
     output: 'qmldir',
-    configuration: {'CONTENT': ('module org.mauikit.accounts\nplugin MauiKitAccounts4plugin\n')}
+    configuration: {'CONTENT': ('module org.mauikit.accounts\ndepends org.mauikit.controls\nplugin MauiKitAccounts4plugin\n')}
 ), install_dir: qml_dir)
 install_subdir('src/controls.6', install_dir: qml_dir, strip_directory: true)
 install_headers(files('src/code/mauiaccounts.h', 'src/code/moduleinfo.h') + [export_header], subdir: 'MauiKit4/Accounts')
 pkg = import('pkgconfig')
-pkg.generate(lib, name: 'MauiKit Accounts 4', filebase: 'MauiKitAccounts4', version: meson.project_version(), description: 'MauiKit accounts library', requires: 'MauiKit4')
+pkg.generate(lib, name: 'MauiKit Accounts 4', filebase: 'MauiKitAccounts4', version: meson.project_version(), description: 'MauiKit accounts library', requires: 'MauiKit4 Qt6Core Qt6DBus Qt6Network Qt6Qml Qt6Quick Qt6Sql KF6CoreAddons KF6I18n')
 
 cmake_targets = configure_file(
     input: 'meson-content.in',
@@ -56,7 +56,8 @@ if(NOT TARGET MauiKitAccounts4)
   add_library(MauiKitAccounts4 SHARED IMPORTED)
   set_target_properties(MauiKitAccounts4 PROPERTIES
     IMPORTED_LOCATION "${_MAUIKIT_PREFIX}/@LIBDIR@/libMauiKitAccounts4.so.4.0.5"
-    INTERFACE_INCLUDE_DIRECTORIES "${_MAUIKIT_PREFIX}/include/MauiKit4/Accounts")
+    INTERFACE_INCLUDE_DIRECTORIES "${_MAUIKIT_PREFIX}/include/MauiKit4/Accounts"
+    INTERFACE_LINK_LIBRARIES "Qt6::Core;Qt6::DBus;Qt6::Network;Qt6::Qml;Qt6::Quick;Qt6::Sql;KF6::CoreAddons;KF6::I18n;MauiKit4")
 endif()
 if(NOT TARGET MauiKit4::Accounts)
   add_library(MauiKit4::Accounts ALIAS MauiKitAccounts4)
@@ -70,7 +71,9 @@ cmake_config = configure_file(
     input: 'meson-content.in',
     output: 'MauiKitAccounts4Config.cmake',
     configuration: {'CONTENT': ('''include(CMakeFindDependencyMacro)
-find_dependency(Qt6 6.4 COMPONENTS Core)
+find_dependency(Qt6 6.4 COMPONENTS Core DBus Network Qml Quick Sql)
+find_dependency(KF6 6.13.0 COMPONENTS CoreAddons I18n)
+find_dependency(MauiKit4 4.0.5 CONFIG)
 include("${CMAKE_CURRENT_LIST_DIR}/MauiKitAccounts4Targets.cmake")
 set(MauiKitAccounts4_FOUND TRUE)
 ''')}
@@ -88,3 +91,20 @@ endif()
 ''')).replace('@VERSION@', (meson.project_version()))}
 )
 install_data([cmake_targets, cmake_config, cmake_version], install_dir: get_option('libdir') / 'cmake' / 'MauiKitAccounts4')
+
+translation_domain = 'mauikitaccounts'
+msgfmt = find_program('msgfmt')
+po_files = run_command('find', 'po', '-mindepth', '2', '-maxdepth', '2', '-type', 'f', '-name', translation_domain + '.po', check: true).stdout().strip().split('\n')
+foreach po_file : po_files
+    if po_file != ''
+        locale = po_file.split('/')[1]
+        custom_target(
+            'translation-' + locale,
+            input: po_file,
+            output: locale / (translation_domain + '.mo'),
+            command: [msgfmt, '--check', '-o', '@OUTPUT@', '@INPUT@'],
+            install: true,
+            install_dir: get_option('localedir') / locale / 'LC_MESSAGES',
+            install_tag: 'i18n')
+    endif
+endforeach
