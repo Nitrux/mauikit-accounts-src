@@ -36,7 +36,7 @@ Maui.PopupPage
 {
     id: control
     
-    maxWidth: 350
+    maxWidth: Maui.Style.units.gridUnit * 22
     
     // title: i18nd("mauikitaccounts","New Account")
     

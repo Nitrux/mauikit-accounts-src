@@ -21,7 +21,7 @@ Maui.PopupPage
 {
     id: control
 
-    maxHeight: 350
+    maxHeight: Maui.Style.units.gridUnit * 22
     maxWidth: maxHeight
 
     // title: i18nd("mauikitaccounts","Accounts")
@@ -61,10 +61,11 @@ Maui.PopupPage
         title: i18nd("mauikitaccounts","Remove Account")
         message: i18nd("mauikitaccounts","Are you sure you want to remove this account?")
 
-            standardButtons: Dialog.Ok | Dialog.Cancel
+            standardButtons: Dialog.Discard | Dialog.Cancel
+        Component.onCompleted: standardButton(Dialog.Discard).text = i18nd("mauikitaccounts", "Remove")
 
         onRejected: close()
-        onAccepted:
+        onDiscarded:
         {
             var account = MA.Accounts.get(_listView.currentIndex)
             console.log(account.label)
