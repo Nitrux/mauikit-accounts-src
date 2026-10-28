@@ -5,6 +5,9 @@ find_dependency(Qt6 @REQUIRED_QT_VERSION@ COMPONENTS Core DBus Network Qml Quick
 find_dependency(KF6 @REQUIRED_KF_VERSION@ COMPONENTS CoreAddons I18n)
 find_dependency(MauiKit4 @REQUIRED_MAUIKIT_VERSION@ CONFIG)
 
+find_dependency(PkgConfig)
+pkg_check_modules(libsecret REQUIRED IMPORTED_TARGET libsecret-1)
+
 # Any changes in this ".cmake" file will be overwritten by CMake, the source is the ".cmake.in" file.
 
 set(Accounts_INSTALL_PREFIX "@PACKAGE_CMAKE_INSTALL_PREFIX@")

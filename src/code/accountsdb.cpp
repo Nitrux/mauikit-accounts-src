@@ -1,7 +1,17 @@
 #include "accountsdb.h"
 
+#include <QFile>
+#include <QRegularExpression>
 #include <QUuid>
 #include <QStandardPaths>
+
+namespace
+{
+bool validIdentifier(const QString &identifier)
+{
+    return QRegularExpression(QStringLiteral("^[A-Za-z_][A-Za-z0-9_]*$")).match(identifier).hasMatch();
+}
+}
 
 #ifdef Q_OS_ANDROID
 #include "mauiandroid.h"
@@ -24,11 +34,8 @@ AccountsDB::AccountsDB(QObject *parent)
         collectionDBPath_dir.mkpath(".");
 
     this->name = QUuid::createUuid().toString();
-    if (!FMH::fileExists(DBPath)) {
-        this->openDB(this->name);
-        this->prepareCollectionDB();
-    } else
-        this->openDB(this->name);
+    this->openDB(this->name);
+    this->prepareCollectionDB();
 }
 
 AccountsDB::~AccountsDB()
@@ -47,6 +54,10 @@ void AccountsDB::openDB(const QString &name)
         if (!this->m_db.open())
             qDebug() << "ERROR OPENING DB" << this->m_db.lastError().text() << m_db.connectionName();
     }
+
+    if (this->m_db.isOpen())
+        QFile::setPermissions(DBPath.toLocalFile(), QFile::ReadOwner | QFile::WriteOwner);
+
     auto query = this->getQuery("PRAGMA synchronous=OFF");
     query.exec();
 }
@@ -106,8 +117,11 @@ void AccountsDB::prepareCollectionDB() const
 
 bool AccountsDB::checkExistance(const QString &tableName, const QString &searchId, const QString &search)
 {
-    auto queryStr = QString("SELECT %1 FROM %2 WHERE %3 = \"%4\"").arg(searchId, tableName, searchId, search);
-    auto query = this->getQuery(queryStr);
+    if (!validIdentifier(tableName) || !validIdentifier(searchId))
+        return false;
+
+    auto query = this->getQuery(QStringLiteral("SELECT %1 FROM %2 WHERE %1 = ?").arg(searchId, tableName));
+    query.addBindValue(search);
 
     if (query.exec()) {
         if (query.next())
@@ -139,10 +153,9 @@ QSqlQuery AccountsDB::getQuery(const QString &queryTxt)
 
 bool AccountsDB::insert(const QString &tableName, const QVariantMap &insertData)
 {
-    if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The table name is empty!");
+    if (!validIdentifier(tableName)) {
+        qDebug() << QStringLiteral("Fatal error on insert! The table name is invalid!");
         return false;
-
     } else if (insertData.isEmpty()) {
         qDebug() << QStringLiteral("Fatal error on insert! The insertData is empty!");
         return false;
@@ -150,12 +163,16 @@ bool AccountsDB::insert(const QString &tableName, const QVariantMap &insertData)
 
     QStringList strValues;
     QStringList fields = insertData.keys();
+    for (const auto &field : fields)
+        if (!validIdentifier(field))
+            return false;
+
     QVariantList values = insertData.values();
     int totalFields = fields.size();
     for (int i = 0; i < totalFields; ++i)
-        strValues.append("?");
+        strValues.append(QStringLiteral("?"));
 
-    QString sqlQueryString = "INSERT INTO " + tableName + " (" + QString(fields.join(",")) + ") VALUES(" + QString(strValues.join(",")) + ")";
+    QString sqlQueryString = QStringLiteral("INSERT INTO %1 (%2) VALUES(%3)").arg(tableName, fields.join(QStringLiteral(",")), strValues.join(QStringLiteral(",")));
     QSqlQuery query(this->m_db);
     query.prepare(sqlQueryString);
 
@@ -168,63 +185,73 @@ bool AccountsDB::insert(const QString &tableName, const QVariantMap &insertData)
 
 bool AccountsDB::update(const QString &tableName, const FMH::MODEL &updateData, const QVariantMap &where)
 {
-    if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The table name is empty!");
+    if (!validIdentifier(tableName)) {
+        qDebug() << QStringLiteral("Fatal error on update! The table name is invalid!");
         return false;
-    } else if (updateData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The insertData is empty!");
+    } else if (updateData.isEmpty() || where.isEmpty()) {
+        qDebug() << QStringLiteral("Fatal error on update! The update data or condition is empty!");
         return false;
     }
 
     QStringList set;
     const auto updateKeys = updateData.keys();
-    for (const auto &key : updateKeys)
-        set.append(FMH::MODEL_NAME[key] + " = '" + updateData[key] + "'");
+    for (const auto &key : updateKeys) {
+        const auto field = FMH::MODEL_NAME[key];
+        if (!validIdentifier(field))
+            return false;
+        set.append(field + QStringLiteral(" = ?"));
+    }
 
     QStringList condition;
     const auto keys = where.keys();
-    for (const auto &key : keys)
-        condition.append(key + " = '" + where[key].toString() + "'");
+    for (const auto &key : keys) {
+        if (!validIdentifier(key))
+            return false;
+        condition.append(key + QStringLiteral(" = ?"));
+    }
 
-    QString sqlQueryString = "UPDATE " + tableName + " SET " + QString(set.join(",")) + " WHERE " + QString(condition.join(","));
-    auto query = this->getQuery(sqlQueryString);
-    qDebug() << sqlQueryString;
+    auto query = this->getQuery(QStringLiteral("UPDATE %1 SET %2 WHERE %3").arg(tableName, set.join(QStringLiteral(",")), condition.join(QStringLiteral(" AND "))));
+    for (const auto &key : updateKeys)
+        query.addBindValue(updateData[key]);
+    for (const auto &key : keys)
+        query.addBindValue(where[key]);
+
     return query.exec();
 }
 
 bool AccountsDB::update(const QString &table, const QString &column, const QVariant &newValue, const QVariant &op, const QString &id)
 {
-    auto queryStr = QString("UPDATE %1 SET %2 = \"%3\" WHERE %4 = \"%5\"").arg(table, column, newValue.toString().replace("\"", "\"\""), op.toString(), id);
-    auto query = this->getQuery(queryStr);
+    if (!validIdentifier(table) || !validIdentifier(column) || !validIdentifier(op.toString()))
+        return false;
+
+    auto query = this->getQuery(QStringLiteral("UPDATE %1 SET %2 = ? WHERE %3 = ?").arg(table, column, op.toString()));
+    query.addBindValue(newValue);
+    query.addBindValue(id);
     return query.exec();
 }
 
 bool AccountsDB::remove(const QString &tableName, const FMH::MODEL &removeData)
 {
-    if (tableName.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on removing! The table name is empty!");
+    if (!validIdentifier(tableName)) {
+        qDebug() << QStringLiteral("Fatal error on removing! The table name is invalid!");
         return false;
-
     } else if (removeData.isEmpty()) {
-        qDebug() << QStringLiteral("Fatal error on insert! The removeData is empty!");
+        qDebug() << QStringLiteral("Fatal error on removing! The removeData is empty!");
         return false;
     }
 
-    QString strValues;
-    auto i = 0;
+    QStringList conditions;
     const auto keys = removeData.keys();
     for (const auto &key : keys) {
-        strValues.append(QString("%1 = \"%2\"").arg(FMH::MODEL_NAME[key], removeData[key]));
-        i++;
-
-        if (keys.size() > 1 && i < keys.size())
-        {
-             strValues.append(" AND ");
-        }
+        const auto field = FMH::MODEL_NAME[key];
+        if (!validIdentifier(field))
+            return false;
+        conditions.append(field + QStringLiteral(" = ?"));
     }
 
-    QString sqlQueryString = "DELETE FROM " + tableName + " WHERE " + strValues;
-    qDebug() << sqlQueryString;
+    auto query = this->getQuery(QStringLiteral("DELETE FROM %1 WHERE %2").arg(tableName, conditions.join(QStringLiteral(" AND "))));
+    for (const auto &key : keys)
+        query.addBindValue(removeData[key]);
 
-    return this->getQuery(sqlQueryString).exec();
+    return query.exec();
 }

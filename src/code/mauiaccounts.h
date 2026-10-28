@@ -37,8 +37,13 @@ class ACCOUNTS_EXPORT MauiAccounts : public MauiList
 
     /** The data for currentAccountIndex, or an empty map when none is selected. */
     Q_PROPERTY(QVariantMap currentAccount READ getCurrentAccount NOTIFY currentAccountChanged)
+    /** CalDAV accounts registered in the shared account store. */
+    Q_PROPERTY(QVariantList caldavAccounts READ caldavAccounts NOTIFY caldavAccountsChanged)
 
 public:
+    /** Returns CalDAV accounts including credentials for framework consumers. */
+    QVariantList caldavAccountsData();
+
     static MauiAccounts *instance()
     {
         if (m_instance)
@@ -77,6 +82,15 @@ public Q_SLOTS:
     /** Returns all cloud accounts in the native FMH model representation. */
     FMH::MODEL_LIST getCloudAccounts();
 
+    /** Returns all registered CalDAV accounts. */
+    QVariantList caldavAccounts();
+
+    /** Adds or updates a CalDAV account in persistent account storage. */
+    Q_INVOKABLE bool saveCalDavAccount(const QVariantMap &account);
+
+    /** Removes a CalDAV account identified by its calendar URL. */
+    Q_INVOKABLE bool removeCalDavAccount(const QString &url);
+
     /** Registers  account and refreshes the exposed account list on success. */
     void registerAccount(const QVariantMap &account);
 
@@ -106,6 +120,7 @@ private:
 
     int m_currentAccountIndex = -1;
     void setAccounts();
+    void migrateLegacySecrets();
 
     bool addCloudAccount(const QString &server, const QString &user, const QString &password);
     bool removeCloudAccount(const QString &server, const QString &user);
@@ -124,4 +139,7 @@ Q_SIGNALS:
 
     /** Emitted when the selected account  index changes. */
     void currentAccountIndexChanged(int index);
+
+    /** Emitted when CalDAV account storage changes. */
+    void caldavAccountsChanged();
 };

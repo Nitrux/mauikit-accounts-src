@@ -74,6 +74,9 @@ find_package(KF${KF_MAJOR_VERSION} ${REQUIRED_KF_VERSION} REQUIRED COMPONENTS
 
 find_package(MauiKit${MAUI_MAJOR_VERSION} ${REQUIRED_MAUIKIT_VERSION} REQUIRED)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(libsecret REQUIRED IMPORTED_TARGET libsecret-1)
+
 if(${ECM_SOURCE_UNDER_VERSION_CONTROL})
     execute_process(
         COMMAND git rev-parse --abbrev-ref HEAD

@@ -21,10 +21,12 @@ set(plugin_SRCS
 set(lib_SRCS
     code/mauiaccounts.cpp
     code/accountsdb.cpp
+    code/mauisecretstore.cpp
     code/moduleinfo.cpp)
 
 set(lib_HDRS
     code/mauiaccounts.h
+    code/mauisecretstore.h
     code/moduleinfo.h)
 
 ecm_target_qml_sources(MauiKitAccounts${MAUI_MAJOR_VERSION} SOURCES
@@ -69,7 +71,8 @@ target_link_libraries(MauiKitAccounts${MAUI_MAJOR_VERSION}
     MauiKit${MAUI_MAJOR_VERSION}
     Qt${QT_MAJOR_VERSION}::Sql
     Qt${QT_MAJOR_VERSION}::Core
-    KF${KF_MAJOR_VERSION}::CoreAddons)
+    KF${KF_MAJOR_VERSION}::CoreAddons
+    PkgConfig::libsecret)
 
 ecm_finalize_qml_module(MauiKitAccounts${MAUI_MAJOR_VERSION} DESTINATION ${KDE_INSTALL_QMLDIR})
 
