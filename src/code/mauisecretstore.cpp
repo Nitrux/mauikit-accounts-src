@@ -300,12 +300,14 @@ QVariantList MauiSecretStore::findLegacy(const QString &schemaName,
     QVector<QByteArray> names;
     auto schema = legacySchema(schemaName, attributeNames, &names);
     GError *error = nullptr;
+    auto *attributesTable = attributeTable(QVariantMap{});
     auto *items = secret_service_search_sync(nullptr,
                                              &schema,
-                                             nullptr,
+                                             attributesTable,
                                              static_cast<SecretSearchFlags>(SECRET_SEARCH_ALL | SECRET_SEARCH_UNLOCK | SECRET_SEARCH_LOAD_SECRETS),
                                              nullptr,
                                              &error);
+    g_hash_table_unref(attributesTable);
 
     QVariantList result;
     if (error) {
