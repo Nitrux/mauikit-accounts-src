@@ -1,9 +1,19 @@
 #include "accountsdb.h"
 
 #include <QFile>
+#include <QResource>
 #include <QRegularExpression>
 #include <QUuid>
 #include <QStandardPaths>
+
+static void initializeAccountsResources()
+{
+    static const bool initialized = [] {
+        Q_INIT_RESOURCE(accounts);
+        return true;
+    }();
+    Q_UNUSED(initialized);
+}
 
 namespace
 {
@@ -64,6 +74,7 @@ void AccountsDB::openDB(const QString &name)
 
 void AccountsDB::prepareCollectionDB() const
 {
+    initializeAccountsResources();
     QSqlQuery query(this->m_db);
 
     QFile file(":/accounts/script.sql");

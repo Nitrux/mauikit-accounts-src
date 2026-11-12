@@ -15,10 +15,10 @@ ecm_add_qml_module(MauiKitAccounts${MAUI_MAJOR_VERSION}
     "org.mauikit.controls")
 
 set(plugin_SRCS
-    code/accounts_plugin.cpp
-    code/accounts.qrc)
+    code/accounts_plugin.cpp)
 
 set(lib_SRCS
+    code/accounts.qrc
     code/mauiaccounts.cpp
     code/accountsdb.cpp
     code/mauisecretstore.cpp
